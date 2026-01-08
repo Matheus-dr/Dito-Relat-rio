@@ -6,8 +6,6 @@ st.title("Relatório One Up • DITO")
 
 uploaded = st.file_uploader("Envie o CSV exportado da DITO", type=["csv"])
 
-uploaded = st.file_uploader("Envie o CSV exportado da DITO", type=["csv"])
-
 if uploaded:
     df = pd.read_csv(uploaded)
 
