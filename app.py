@@ -20,6 +20,11 @@ if uploaded:
         ]
     ].copy()
 
+    faltando colunas = colunas_necessarias - set(df.columns)
+    if faltando:
+        st.error(f"CSV inválido. Faltando colunas: {', '.join(storted(faltando)))}")
+        st.stop()
+
     # Renomeia colunas
     df.columns = [
         "FILIAL",
