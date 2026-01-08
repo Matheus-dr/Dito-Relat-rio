@@ -6,10 +6,29 @@ st.title("Relatório One Up • DITO")
 
 uploaded = st.file_uploader("Envie o CSV exportado da DITO", type=["csv"])
 
+uploaded = st.file_uploader("Envie o CSV exportado da DITO", type=["csv"])
+
 if uploaded:
     df = pd.read_csv(uploaded)
 
-    # Seleciona apenas as colunas necessárias
+    colunas_necessarias = {
+        "nome_loja",
+        "nome_vendedor",
+        "contatos_disponibilizados",
+        "contatos_realizados",
+        "contatos_realizados_porcentagem",
+    }
+
+    faltando = colunas_necessarias - set(df.columns)
+
+    if faltando:
+        st.error(
+            "CSV inválido. Faltando colunas: "
+            + ", ".join(sorted(faltando))
+        )
+        st.stop()
+
+    # Seleciona só o que interessa
     df = df[
         [
             "nome_loja",
@@ -20,15 +39,6 @@ if uploaded:
         ]
     ].copy()
 
-    faltando = colunas_necessarias - set(df.columns)
-
-if faltando:
-    st.error(
-        "CSV inválido. Faltando colunas: "
-        + ", ".join(sorted(faltando))
-    )
-    st.stop()
-
     # Renomeia colunas
     df.columns = [
         "FILIAL",
@@ -38,25 +48,6 @@ if faltando:
         "% REALIZADOS",
     ]
 
-    # Ajusta percentual
-    df["% REALIZADOS"] = df["% REALIZADOS"] / 100
+    df["% REALIZADOS"] = (df["% REALIZADOS"] / 100).round(4)
 
-    # Ordena
     df = df.sort_values(["FILIAL", "VENDEDORA"])
-
-    st.subheader("Prévia do relatório")
-    st.dataframe(df)
-
-    # Gera Excel em memória
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Resumo Geral")
-        for filial, sub in df.groupby("FILIAL"):
-            sub.to_excel(writer, index=False, sheet_name=str(filial)[:31])
-
-    st.download_button(
-        "Baixar Excel final",
-        data=output.getvalue(),
-        file_name="relatorio_one_up.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
